@@ -27,6 +27,9 @@ public class Task1 {
     private static final String DIR_BACKUP = "./backup";
 
     public static void main(String[] args) {
+        // Копирование отдельного файла
+//        backup("./src/main/java/org/example/Task1.java", DIR_BACKUP);
+        // Копирование директории
         backup("./src", DIR_BACKUP);
 
     }
@@ -46,11 +49,25 @@ public class Task1 {
             File file = new File(dirTarget);
             delete(file);
         }
-        // Производим копирование файлов. Получаем стрим со вложенными директориями и файлами.
-        try (Stream<Path> pathStream = Files.walk(pathSource)) {
-            // Перебираем полученный стрим.
-            pathStream.forEach(el -> {
-                try {
+
+        // Проверяем передан ли для копирования файл
+        if (Files.isRegularFile(pathSource)) {
+            try {
+                // Создаем директорию
+                Files.createDirectory(pathTarget);
+                // Копируем файл в созданную директорию
+                Files.copy(pathSource, pathTarget.resolve(pathSource.getFileName()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // Если получен не файл, значит получена директория
+        else {
+            // Производим копирование файлов. Получаем стрим со вложенными директориями и файлами.
+            try (Stream<Path> pathStream = Files.walk(pathSource)) {
+                // Перебираем полученный стрим.
+                pathStream.forEach(el -> {
+                    try {
                     /*  Производим копирование эл-тов стрима в папку backup.
                         Строим путь используя метод resolve():
                         1. К файлу подлежащему копированию добавляем путь до исходной папки копирования
@@ -58,14 +75,16 @@ public class Task1 {
                         2. Добавляем к полученному пути, путь до директории в которую копируем
                             (пример .\backup + src\main\java\org\example\Main.java)
                      */
-                    Files.copy(el, pathTarget.resolve(pathSource.relativize(el)));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
+                        Files.copy(el, pathTarget.resolve(pathSource.relativize(el)));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        System.out.println("Создание резервной копии завершено.");
     }
 
     /**
@@ -196,20 +215,21 @@ public class Task1 {
 
     /**
      * Получение списка файлов в директории, в которых встречается искомое слово.
-     * @param dir директория для поиска.
+     *
+     * @param dir    директория для поиска.
      * @param search слово для поиска.
      * @return список файлов.
      * @throws IOException при ошибке работы с файлом.
      */
-    static List<String> searchMatch(File dir, String search) throws IOException{
+    static List<String> searchMatch(File dir, String search) throws IOException {
         List<String> list = new ArrayList<>();
         File[] files = dir.listFiles();
         if (files == null)
             return list;
-        for (int i = 0; i < files.length; i++){
+        for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory())
                 continue;
-            if (findInFile(files[i].getCanonicalPath(), search)){
+            if (findInFile(files[i].getCanonicalPath(), search)) {
                 list.add(files[i].getName());
             }
         }

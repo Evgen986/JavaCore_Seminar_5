@@ -3,6 +3,9 @@ package org.example;
 import java.io.File;
 import java.util.Comparator;
 
+/**
+ * Компаратор сортирует коллекция объектов File, вначале коллекции идут директории, в конце файлы.
+ */
 public class FileComparator implements Comparator<File> {
 
     @Override
